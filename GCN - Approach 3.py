@@ -1,3 +1,13 @@
+import os
+import pandas
+import regex as re
+import time
+from tqdm import tnrange, tqdm_notebook
+import tqdm
+import numpy
+import torch
+from scipy.sparse import coo_matrix
+
 from matplotlib import transforms
 import networkx as nx
 import numpy as np
@@ -16,11 +26,121 @@ from sklearn.metrics import roc_auc_score
 import torch_geometric.transforms as T
 
 
-sys.stdout = open("results - 1 AUC curve.txt", 'w')
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+path = os.getcwd() + '/raw_name'
+
+os.chdir(path)
+df = []
+def read_text_file(file_path):
+    file = open(file_path, 'r')
+    for line in file:
+        df.append(line)
+  
+  
+# iterate through all file
+for file in os.listdir():
+    # Check whether file is in text format or not
+    if file.endswith(".txt"):
+        file_path = f"{path}/{file}"
+  
+        # call read text file function
+        read_text_file(file_path)
+
+lst = []
+lst.append("a.b c.dsf.dd")
+
+dn = '(\w\n ,'
+
+x = df[0].split()
+
+
+pattern1 = r'\w*\s*\w+(?=\.)'
+pattern2 = '(?<=\.)\w*\s*\w+$'
+ptrn = [pattern1, pattern2]
+ptn = re.compile(r'(?<=\.)\w*\s*\w+$')
+
+matches = []
+for pat in ptrn:
+    matches += re.findall(pat, x[0])
+
+# re.findall('(%s|%s)' % (pattern1,pattern2), x[0] )
+re.compile("(%s|%s)" % (pattern1, pattern2)).findall(x[0])
+
+re.split(r"\.", x[0])
+
+count = 0
+for i in df:
+    count = count + 1
+count*2
+
+
+lst = []
+count = 0
+for combined in df:
+    comb = combined.split()
+    
+    for sentence in comb:
+        lst += re.compile('(%s|%s)' % (pattern1, pattern2)).findall(sentence)
+        count = count + 1
+        
+
+lst = list(set(lst))
+
+
+# we have to make a list of list 
+splitted_df = []
+
+for i in df:
+    comb = i.split()
+    for sp in comb:
+        splitted_df.append(sp)
+
+matrix = []
+for call in splitted_df:
+    call_break = re.split(r'\.', call)
+    print(call_break)
+    ans = []
+    for word in lst:
+        if word in call_break:
+            ans.append(1)
+        else:
+            ans.append(0)
+    
+    matrix.append(ans)
+    break
+
+count = 0
+for i in matrix[0]:
+    if(i == 1):
+        count = count+1
+
+# check if size is same of not
+# size of first call break = 7
+
+matrix = []
+with tqdm.tqdm(total=len(splitted_df)) as t:
+    for call in splitted_df:
+        call_break = re.split(r'\.', call)
+        ans = []
+        for word in lst:
+            if word in call_break:
+                ans.append(1)
+            else:
+                ans.append(0)
+
+        matrix.append(ans)
+        t.update(1)
+
+matrix_array = numpy.array([numpy.array(xi) for xi in matrix])
+
+os.chdir("../")
+os.getcwd()
+
+
 device = "cpu"
 
 root = "Dataset/callNetwork"
+
+sys.stdout = open("results - 3 AUC curve.txt", 'w')
 
 
 class CallNetworks(Dataset):
@@ -46,19 +166,15 @@ class CallNetworks(Dataset):
             for i in temp:
                 if i not in tmp_nodes:
                     G.add_node((i))
-            degree = nx.degree(G)
-            degree_cent = nx.degree_centrality(G)
-            avg_neigh_degree = nx.average_neighbor_degree(G)
-            closeness_cent = nx.closeness_centrality(G)
-            between_cen = nx.betweenness_centrality(G)
             x = torch.zeros((len(G.nodes), 5))
             edge_index = torch.from_numpy(pd.read_csv(raw_path, delimiter=" ").values).reshape((2,-1))
             for i, key in enumerate(dict(G.nodes).keys()):
-                x[i,0] = degree[key]
-                x[i,1] = degree_cent[key]
-                x[i,2] = avg_neigh_degree[key]
-                x[i,3] = closeness_cent[key]
-                x[i,4] = between_cen[key]
+                """
+                Difference in Approach 2 and 3
+                """
+                for j in range(matrix.shape[1]):
+                    x[i,j] = matrix[i,j]
+                x[i,j+1] = index
             data = Data(x=x, edge_index=edge_index)
             torch.save(data, osp.join(self.processed_dir,f"data_{index}.pt"))
             index += 1
@@ -145,3 +261,5 @@ print(f'Final Test: {final_test_auc:.4f}')
 
 z = model.encode(test_data.x, test_data.edge_index)
 final_edge_index = model.decode_all(z)
+
+    
