@@ -6,4 +6,7 @@ mamba env create -f environment.yaml
 ## To activate env
 conda activate callgraphs
 
-## Create testing jupyterntbks in the root directories of named with your Roll No. for testing and then add your code of the .py files 
+## To see the updated results and recreating the model in your local system
+- Setup the Anaconda environment
+- Run the individual scripts for the 3 GCN Models
+
