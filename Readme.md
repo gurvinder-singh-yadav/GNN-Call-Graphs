@@ -16,12 +16,12 @@ Following GNN models are used:
 
 
 ## To create enviornment run
-conda install mamba -c conda-forge -y
-mamba init bash
-mamba env create -f environment.yaml
+`conda install mamba -c conda-forge -y` <br>
+`mamba init bash` <br>
+`mamba env create -f environment.yaml` <br>
 
 ## To activate env
-conda activate callgraphs
+`conda activate callgraphs` <br>
 
 ## To see the updated results and recreating the model in your local system
 - Setup the Anaconda environment
